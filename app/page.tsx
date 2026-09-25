@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FrameViewer } from "@/components/frame-viewer";
 import { LandingHero } from "@/components/landing-hero";
 import { AgriGlassDashboard } from "@/components/agri-glass-dashboard";
 
 export default function Home() {
+  const router = useRouter();
   const [viewState, setViewState] = useState<"video-hero" | "dashboard">("video-hero");
   const [isVideoCompleted, setIsVideoCompleted] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(1);
@@ -18,7 +20,7 @@ export default function Home() {
 
   const handleLoginSuccess = (role: string) => {
     setUserRole(role || "Portal Operator");
-    setViewState("dashboard");
+    router.push("/dashboard");
   };
 
   React.useEffect(() => {

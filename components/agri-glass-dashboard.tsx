@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   UploadCloud,
   ChevronDown,
@@ -26,11 +27,53 @@ interface AIModel {
 
 const INITIAL_AI_MODELS: AIModel[] = [
   {
+    id: "yolov11n",
+    name: "YOLOv11n (YOLOv11 Nano - Next-Gen)",
+    accuracy: "",
+    latency: "6ms",
+    strengths: ["Potato___Early_blight", "Tomato_healthy", "Ultra-Fast Inference"],
+  },
+  {
+    id: "yolov8n",
+    name: "YOLOv8n (YOLOv8 Nano - Ultra Fast)",
+    accuracy: "",
+    latency: "8ms",
+    strengths: ["Potato___Early_blight", "Tomato_Late_blight", "Real-Time Inference"],
+  },
+  {
+    id: "google-cropnet",
+    name: "Google_CropNet_Complete (Recommended)",
+    accuracy: "98.21%",
+    latency: "18ms",
+    strengths: ["Potato___Late_blight", "Tomato_Bacterial_spot", "Potato___Early_blight"],
+  },
+  {
     id: "efficientnet-b1",
-    name: "EfficientNet_B1_Complete (Recommended)",
-    accuracy: "98.03%",
+    name: "EfficientNet_B1_Complete",
+    accuracy: "98.04%",
     latency: "14ms",
     strengths: ["Potato___Early_blight", "Potato___Late_blight", "Tomato_Septoria_leaf_spot"],
+  },
+  {
+    id: "efficientnet-b2",
+    name: "EfficientNet_B2_Complete",
+    accuracy: "97.25%",
+    latency: "22ms",
+    strengths: ["Tomato_Early_blight", "Tomato_Late_blight", "Potato___healthy"],
+  },
+  {
+    id: "swin-v2-t",
+    name: "Swin_V2_T_Complete",
+    accuracy: "81.28%",
+    latency: "35ms",
+    strengths: ["Tomato_Yellow_Leaf_Curl_Virus", "Tomato_Spider_mites", "Potato___Late_blight"],
+  },
+  {
+    id: "shufflenet-v2",
+    name: "ShuffleNet_V2_Complete (Lightweight)",
+    accuracy: "",
+    latency: "10ms",
+    strengths: ["Potato___Late_blight", "Tomato_Early_blight", "Edge Devices"],
   }
 ];
 
@@ -42,7 +85,7 @@ export function AgriGlassDashboard() {
   
   // Real data state placeholders
   const [detectedPathogen, setDetectedPathogen] = useState<string>("-");
-  const [severity] = useState<string>("-"); // Hardcoded to "-" for now
+  const [severity, setSeverity] = useState<string>("-");
   const [actionDirective, setActionDirective] = useState<string>("Upload a crop image to generate an AI-driven action directive.");
   const [displayedDirective, setDisplayedDirective] = useState<string>("Upload a crop image to generate an AI-driven action directive.");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -50,17 +93,22 @@ export function AgriGlassDashboard() {
 
   // Dynamically calculate the best comparison model (highest accuracy other than selected)
   const comparisonModel = React.useMemo(() => {
-    const others = aiModels.filter((m) => m.id !== selectedModel.id);
-    if (others.length === 0) return selectedModel;
-    return others.sort((a, b) => parseFloat(b.accuracy) - parseFloat(a.accuracy))[0];
+    const activeId = selectedModel?.id || INITIAL_AI_MODELS[0].id;
+    const others = aiModels.filter((m) => m.id !== activeId);
+    if (others.length === 0) return selectedModel || INITIAL_AI_MODELS[0];
+    return others.sort((a, b) => {
+      const accA = parseFloat(a.accuracy.replace("%", "")) || 0;
+      const accB = parseFloat(b.accuracy.replace("%", "")) || 0;
+      return accB - accA;
+    })[0];
   }, [selectedModel, aiModels]);
 
-  // Fetch AI Models on mount
+  // Fetch AI Models on mount safely
   React.useEffect(() => {
     async function fetchModels() {
       try {
-        const res = await fetch("http://localhost:8000/models");
-        if (res.ok) {
+        const res = await fetch("http://localhost:8000/models").catch(() => null);
+        if (res && res.ok) {
           const data = await res.json();
           if (data.models && data.models.length > 0) {
             setAiModels(data.models);
@@ -68,30 +116,31 @@ export function AgriGlassDashboard() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch models from backend", err);
+        console.warn("Backend API on port 8000 is not reachable. Using fallback models.");
       }
     }
     fetchModels();
   }, []);
 
-  // Fake streaming effect for Action Directive
+  // Streaming effect for Action Directive
   React.useEffect(() => {
-    if (actionDirective === "Upload a crop image to generate an AI-driven action directive." || 
-        actionDirective === "..." || 
-        actionDirective === "Unable to fetch recommendation.") {
-      setDisplayedDirective(actionDirective);
+    const text = typeof actionDirective === "string" ? actionDirective : "Upload a crop image to generate an AI-driven action directive.";
+    if (text === "Upload a crop image to generate an AI-driven action directive." || 
+        text === "..." || 
+        text === "Unable to fetch recommendation.") {
+      setDisplayedDirective(text);
       return;
     }
 
     setDisplayedDirective("");
     let i = 0;
     const intervalId = setInterval(() => {
-      setDisplayedDirective((prev) => actionDirective.slice(0, i + 1));
+      setDisplayedDirective(() => text.slice(0, i + 1));
       i++;
-      if (i >= actionDirective.length) {
+      if (i >= text.length) {
         clearInterval(intervalId);
       }
-    }, 15); // Adjust typing speed here (ms per character)
+    }, 15);
 
     return () => clearInterval(intervalId);
   }, [actionDirective]);
@@ -104,6 +153,7 @@ export function AgriGlassDashboard() {
       setIsGenerating(true);
       setDetectedPathogen("Analyzing Image...");
       setActionDirective("...");
+      setSeverity("Analyzing...");
       
       try {
         const formData = new FormData();
@@ -113,39 +163,46 @@ export function AgriGlassDashboard() {
         const mlRes = await fetch("http://localhost:8000/predict", {
           method: "POST",
           body: formData
-        });
+        }).catch(() => null);
         
-        if (mlRes.ok) {
+        if (mlRes && mlRes.ok) {
           const mlData = await mlRes.json();
-          const pathogenName = mlData.predictions[selectedModel.id]?.pathogen || "Healthy (No Pathogen)";
+          const activeModelId = selectedModel?.id || INITIAL_AI_MODELS[0].id;
+          const pathogenName = mlData.predictions?.[activeModelId]?.pathogen || "Healthy (No Pathogen)";
           
-          // 2. Fetch Gemini Action Directive using the ML result
-          const geminiRes = await fetch('/api/action-directive', {
+          // 2. Fetch Action Directive using the ML result
+          const actionRes = await fetch('/api/action-directive', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pathogen: pathogenName })
-          });
+          }).catch(() => null);
           
           let directive = "Unable to fetch recommendation.";
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            directive = geminiData.actionDirective;
+          let sevLevel = "Moderate (Level 2)";
+          
+          if (actionRes && actionRes.ok) {
+            const actionData = await actionRes.json();
+            directive = actionData.actionDirective || directive;
+            sevLevel = actionData.severity || sevLevel;
           }
           
-          // 3. Update all UI state simultaneously
-          setApiPredictions(mlData.predictions);
+          // 3. Update UI state
+          setApiPredictions(mlData.predictions || {});
           setDetectedPathogen(pathogenName);
           setActionDirective(directive);
+          setSeverity(sevLevel);
           
         } else {
-          console.error("Backend API Error. Make sure FastAPI is running on port 8000.");
-          setDetectedPathogen("-");
-          setActionDirective("Upload a crop image to generate an AI-driven action directive.");
+          console.warn("Backend API Error or not running. Make sure FastAPI is running on port 8000.");
+          setDetectedPathogen("Backend Offline");
+          setActionDirective("Start Python backend (api_backend/main.py) to run live model inference.");
+          setSeverity("-");
         }
       } catch (err) {
         console.error("Failed to connect to backend", err);
-        setDetectedPathogen("-");
+        setDetectedPathogen("Error Connecting");
         setActionDirective("Upload a crop image to generate an AI-driven action directive.");
+        setSeverity("-");
       } finally {
         setIsGenerating(false);
       }
@@ -154,8 +211,9 @@ export function AgriGlassDashboard() {
 
   // Re-sync primary model prediction and fetch new directive if user changes the dropdown while a prediction exists
   React.useEffect(() => {
-    if (apiPredictions[selectedModel.id] && detectedPathogen !== "-" && detectedPathogen !== "Analyzing Image...") {
-      const newPathogen = apiPredictions[selectedModel.id].pathogen;
+    const activeModelId = selectedModel?.id;
+    if (activeModelId && apiPredictions[activeModelId] && detectedPathogen !== "-" && detectedPathogen !== "Analyzing Image..." && detectedPathogen !== "Backend Offline") {
+      const newPathogen = apiPredictions[activeModelId].pathogen || "Healthy (No Pathogen)";
       if (newPathogen !== detectedPathogen) {
         setDetectedPathogen("Analyzing Image...");
         setActionDirective("...");
@@ -166,15 +224,24 @@ export function AgriGlassDashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pathogen: newPathogen })
         })
-        .then(res => res.json())
+        .then(res => res && res.ok ? res.json() : null)
         .then(data => {
           setDetectedPathogen(newPathogen);
-          setActionDirective(data.actionDirective);
+          if (data) {
+            if (data.actionDirective) setActionDirective(data.actionDirective);
+            if (data.severity) setSeverity(data.severity);
+          }
+        })
+        .catch(() => {
+          setDetectedPathogen(newPathogen);
         })
         .finally(() => setIsGenerating(false));
       }
     }
-  }, [selectedModel.id, apiPredictions]);
+  }, [selectedModel?.id, apiPredictions]);
+
+  const activeModel = selectedModel || INITIAL_AI_MODELS[0];
+  const activeCompModel = comparisonModel || INITIAL_AI_MODELS[1];
 
   return (
     <div className="w-[80vw] max-w-[1280px] mx-auto font-sans select-none animate-in fade-in zoom-in-95 slide-in-from-bottom-28 duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
@@ -192,7 +259,6 @@ export function AgriGlassDashboard() {
               High-Precision Crop Pathology Dashboard
             </h2>
           </div>
-          
         </div>
 
         {/* 2-COLUMN GRID */}
@@ -215,7 +281,7 @@ export function AgriGlassDashboard() {
                 >
                   <div className="flex items-center gap-3">
                     <Zap className="h-5 w-5 text-lime-300" />
-                    <span className="text-base font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedModel.name}</span>
+                    <span className="text-base font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{activeModel.name}</span>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-white transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -231,13 +297,13 @@ export function AgriGlassDashboard() {
                           setIsDropdownOpen(false);
                         }}
                         className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black transition-all flex items-center justify-between cursor-pointer ${
-                          selectedModel.id === model.id
+                          activeModel.id === model.id
                             ? "bg-lime-400 text-stone-950 font-black shadow-md"
                             : "text-white hover:bg-white/30 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
                         }`}
                       >
                         <span className="text-sm font-extrabold">{model.name}</span>
-                        <span className="font-mono text-xs">{model.accuracy}</span>
+                        <span className="font-mono text-xs">{model.accuracy || "N/A"}</span>
                       </button>
                     ))}
                   </div>
@@ -296,7 +362,7 @@ export function AgriGlassDashboard() {
                   Detailed Results
                 </span>
                 <span className="rounded-full bg-lime-400 text-stone-950 px-3.5 py-1 text-xs font-mono font-black shadow-md">
-                  Confidence: {apiPredictions[selectedModel.id] ? `${(apiPredictions[selectedModel.id].confidence * 100).toFixed(1)}%` : selectedModel.accuracy}
+                  Confidence: {apiPredictions[activeModel.id] ? `${(apiPredictions[activeModel.id].confidence * 100).toFixed(1)}%` : (activeModel.accuracy || "N/A")}
                 </span>
               </div>
 
@@ -322,7 +388,7 @@ export function AgriGlassDashboard() {
                 </div>
                 <div>
                   <span className="text-lime-300 font-extrabold text-[11px] uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Active AI Model</span>
-                  <span className="text-white font-extrabold text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">{selectedModel.name}</span>
+                  <span className="text-white font-extrabold text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">{activeModel.name}</span>
                 </div>
               </div>
 
@@ -345,10 +411,19 @@ export function AgriGlassDashboard() {
 
             {/* 4. AI ARENA (MODEL COMPARISON SECTION) */}
             <div className="space-y-3">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <Split className="h-4 w-4 text-lime-300" />
-                AI Arena (Model Comparison)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  <Split className="h-4 w-4 text-lime-300" />
+                  AI Arena (Model Comparison)
+                </label>
+                <Link
+                  href="/arena"
+                  className="rounded-xl bg-lime-400 text-stone-950 px-3.5 py-1.5 text-xs font-black shadow-md hover:bg-lime-300 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Open Full AI Arena Grid →</span>
+                </Link>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Model A */}
@@ -356,14 +431,14 @@ export function AgriGlassDashboard() {
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-extrabold text-lime-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">MODEL A (Primary)</span>
                     <span className="font-mono text-white font-extrabold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                      {apiPredictions[selectedModel.id] ? `${(apiPredictions[selectedModel.id].confidence * 100).toFixed(1)}%` : selectedModel.accuracy}
+                      {apiPredictions[activeModel.id] ? `${(apiPredictions[activeModel.id].confidence * 100).toFixed(1)}%` : (activeModel.accuracy || "N/A")}
                     </span>
                   </div>
                   <p className="text-xs font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                    {selectedModel.name}
+                    {activeModel.name}
                   </p>
                   <p className="text-[11px] text-white font-bold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                    Inference Speed: {apiPredictions[selectedModel.id] ? `${apiPredictions[selectedModel.id].latency_ms}ms` : selectedModel.latency}
+                    Inference Speed: {apiPredictions[activeModel.id] ? `${apiPredictions[activeModel.id].latency_ms}ms` : activeModel.latency}
                   </p>
                 </div>
 
@@ -372,14 +447,14 @@ export function AgriGlassDashboard() {
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-extrabold text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">MODEL B (Benchmark)</span>
                     <span className="font-mono text-white font-extrabold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                      {apiPredictions[comparisonModel.id] ? `${(apiPredictions[comparisonModel.id].confidence * 100).toFixed(1)}%` : comparisonModel.accuracy}
+                      {apiPredictions[activeCompModel.id] ? `${(apiPredictions[activeCompModel.id].confidence * 100).toFixed(1)}%` : (activeCompModel.accuracy || "N/A")}
                     </span>
                   </div>
                   <p className="text-xs font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                    {comparisonModel.name}
+                    {activeCompModel.name}
                   </p>
                   <p className="text-[11px] text-white font-bold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                    Inference Speed: {apiPredictions[comparisonModel.id] ? `${apiPredictions[comparisonModel.id].latency_ms}ms` : comparisonModel.latency}
+                    Inference Speed: {apiPredictions[activeCompModel.id] ? `${apiPredictions[activeCompModel.id].latency_ms}ms` : activeCompModel.latency}
                   </p>
                 </div>
               </div>
@@ -400,12 +475,12 @@ export function AgriGlassDashboard() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-bold text-white">
                 <span className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Model Diagnostic Accuracy</span>
-                <span className="text-lime-300 font-mono font-extrabold text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">{selectedModel.accuracy}</span>
+                <span className="text-lime-300 font-mono font-extrabold text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">{activeModel.accuracy || "N/A"}</span>
               </div>
               <div className="h-3 w-full bg-white/25 rounded-full overflow-hidden p-0.5 border-2 border-white/50 shadow-inner">
                 <div
                   className="h-full bg-lime-400 rounded-full transition-all duration-1000 shadow-[0_0_12px_#A3E635]"
-                  style={{ width: selectedModel.accuracy }}
+                  style={{ width: activeModel.accuracy || "0%" }}
                 />
               </div>
             </div>
@@ -414,7 +489,7 @@ export function AgriGlassDashboard() {
             <div className="space-y-2">
               <span className="text-[11px] font-black text-lime-300 uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Detection Strengths</span>
               <div className="flex flex-wrap gap-2">
-                {selectedModel.strengths.map((strength, i) => (
+                {activeModel.strengths.map((strength, i) => (
                   <span
                     key={i}
                     className="inline-flex items-center gap-1.5 rounded-full bg-white/25 border-2 border-white/50 px-3.5 py-1 text-xs font-extrabold text-white shadow-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
