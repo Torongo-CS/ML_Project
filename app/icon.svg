@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4d7c0f" />
+      <stop offset="100%" stop-color="#65a30d" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Leaf Base Shape -->
+  <path d="M 12 88 C 5 60 15 25 50 12 C 70 5 88 5 92 8 C 95 12 95 30 88 50 C 75 85 40 95 12 88 Z" fill="url(#leafGrad)" />
+  
+  <!-- Center Stem / Vein -->
+  <path d="M 10 90 C 35 75 60 50 92 8" stroke="#3f6212" stroke-width="3" stroke-linecap="round" fill="none" />
+  
+  <!-- Left Veins (Top) -->
+  <path d="M 28 78 C 22 62 15 50 15 50" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M 45 62 C 35 45 25 30 25 30" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M 64 42 C 55 28 45 18 45 18" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M 79 24 C 74 15 65 10 65 10" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+
+  <!-- Right Veins (Bottom) -->
+  <path d="M 28 78 C 45 82 55 85 55 85" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M 45 62 C 60 70 75 72 75 72" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M 64 42 C 78 50 88 48 88 48" stroke="#3f6212" stroke-width="2" stroke-linecap="round" fill="none" />
+</svg>

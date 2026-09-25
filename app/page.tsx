@@ -21,6 +21,20 @@ export default function Home() {
     setViewState("dashboard");
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Hidden shortcut: Press Escape, Enter, or Space to instantly skip the video
+      if (viewState === "video-hero" && !isVideoCompleted) {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+          setIsVideoCompleted(true);
+        }
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [viewState, isVideoCompleted]);
+
   return (
     <div className="relative min-h-screen flex flex-col bg-stone-950 text-stone-100 font-sans selection:bg-lime-500/30 selection:text-white overflow-x-hidden">
       {/* PERSISTENT BACKGROUND IMAGE - SMOOTHLY BLURS & ZOOMS SLOWLY ON SIGN IN */}

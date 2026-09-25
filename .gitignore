@@ -40,4 +40,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python / Virtual Environments
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
+# Data and Models
+models/*
+!models/.keep
