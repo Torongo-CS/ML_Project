@@ -1,69 +1,90 @@
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
+import { FrameViewer } from "@/components/frame-viewer";
+import { LandingHero } from "@/components/landing-hero";
+import { AgriGlassDashboard } from "@/components/agri-glass-dashboard";
 
 export default function Home() {
+  const [viewState, setViewState] = useState<"video-hero" | "dashboard">("video-hero");
+  const [isVideoCompleted, setIsVideoCompleted] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(1);
+  const [userRole, setUserRole] = useState<string>("Portal Operator");
+
+  const handleVideoComplete = () => {
+    setIsVideoCompleted(true);
+  };
+
+  const handleLoginSuccess = (role: string) => {
+    setUserRole(role || "Portal Operator");
+    setViewState("dashboard");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="relative min-h-screen flex flex-col bg-stone-950 text-stone-100 font-sans selection:bg-lime-500/30 selection:text-white overflow-x-hidden">
+      {/* PERSISTENT BACKGROUND IMAGE - SMOOTHLY BLURS & ZOOMS SLOWLY ON SIGN IN */}
+      <div
+        className={`fixed inset-0 z-0 overflow-hidden pointer-events-none transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          viewState === "dashboard"
+            ? "filter blur-[10px] brightness-[102%] saturate-[110%] scale-110 opacity-100"
+            : "filter blur-0 brightness-90 saturate-100 scale-100 opacity-50"
+        }`}
+      >
         <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/bg-lush-tapestry.jpeg"
+          alt="Lush Greenery Tapestry Background"
+          fill
           priority
+          className="object-cover transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+      </div>
+
+      {/* STATE 1: LANDING PAGE WITH VIDEO HERO */}
+      {viewState === "video-hero" && (
+        <div className="relative z-10 min-h-screen w-full flex flex-col justify-between">
+          <FrameViewer
+            totalFrames={150}
+            autoPlay={true}
+            onFrameChange={(frame) => setCurrentFrame(frame)}
+            onComplete={handleVideoComplete}
+            isCompleted={isVideoCompleted}
+          />
+
+          {isVideoCompleted && (
+            <div className="relative z-20 animate-in fade-in zoom-in-95 duration-700">
+              <LandingHero
+                onLoginSuccess={handleLoginSuccess}
+                currentFrame={currentFrame}
+                totalFrames={150}
+              />
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* STATE 2: DASHBOARD UI - RISES UP SLOWLY AND SMOOTHLY WHILE BACKGROUND BLURS */}
+      {viewState === "dashboard" && (
+        <div className="relative z-10 min-h-screen w-full flex items-center justify-center p-4 sm:p-8 overflow-hidden select-none">
+          {/* Top Left Sign Out / Back Action */}
+          <div className="absolute top-6 left-6 z-30 animate-in fade-in duration-1000">
+            <button
+              onClick={() => {
+                setViewState("video-hero");
+                setIsVideoCompleted(true);
+              }}
+              className="rounded-full bg-white/20 border border-white/50 backdrop-blur-md px-5 py-2.5 text-xs font-mono font-bold text-white hover:bg-lime-400 hover:text-stone-950 transition-all cursor-pointer shadow-xl"
+            >
+              &larr; Exit Portal
+            </button>
+          </div>
+
+          {/* 80% WIDTH CENTERED FROSTED GLASS DASHBOARD UI (RISES UP SLOWLY & ELEGANTLY FROM BOTTOM) */}
+          <div className="relative z-20 w-full flex items-center justify-center py-6 animate-in fade-in slide-in-from-bottom-36 zoom-in-95 duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+            <AgriGlassDashboard />
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }

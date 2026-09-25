@@ -1,26 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-syne: 'Syne', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --font-syne: 'Syne', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --bg-dark: #0C0A09; /* stone-950 */
+  --emerald-botanical: #34D399;
+  --sage-muted: #A7F3D0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-dark);
+  color: #F5F5F4;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0C0A09;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(52, 211, 153, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 211, 153, 0.4);
+}
+
+/* Botanical Glassmorphism */
+.agri-glass-card {
+  background: rgba(28, 25, 23, 0.6); /* stone-900/60 */
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Soft Glow */
+.botanical-glow {
+  box-shadow: 0 0 35px -5px rgba(52, 211, 153, 0.2);
+}
+
+/* Ultra Smooth Text & Slide In Animations */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRightFade {
+  0% {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeftFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes smoothFadeIn {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up-text {
+  animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-right-text {
+  animation: slideInRightFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-left-text {
+  animation: slideInLeftFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-smooth-text {
+  animation: smoothFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger utilities for layered text reveals */
+.delay-100-ms { animation-delay: 100ms; }
+.delay-200-ms { animation-delay: 200ms; }
+.delay-300-ms { animation-delay: 300ms; }
+.delay-400-ms { animation-delay: 400ms; }
+
+/* Side Drawer Glass Panel Keyframes & Utility */
+@keyframes drawerSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-drawer-slide-in {
+  animation: drawerSlideIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Floaty Levitation Animations */
+@keyframes floatySlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes floatyMedium {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes floatyFast {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-floaty-slow {
+  animation: floatySlow 5s ease-in-out infinite;
+}
+
+.animate-floaty-medium {
+  animation: floatyMedium 4s ease-in-out infinite 0.5s;
+}
+
+.animate-floaty-fast {
+  animation: floatyFast 3.5s ease-in-out infinite 1s;
+}
+
+
+
