@@ -58,7 +58,7 @@ export default function Home() {
 
       {/* STATE 1: LANDING PAGE WITH VIDEO HERO */}
       {viewState === "video-hero" && (
-        <div className="relative z-10 min-h-screen w-full flex flex-col justify-between">
+        <div className="relative w-full min-h-screen overflow-hidden">
           <FrameViewer
             totalFrames={150}
             autoPlay={true}
@@ -68,7 +68,7 @@ export default function Home() {
           />
 
           {isVideoCompleted && (
-            <div className="relative z-20 animate-in fade-in zoom-in-95 duration-700">
+            <div className="fixed inset-0 z-20 animate-in fade-in zoom-in-95 duration-700 flex flex-col pointer-events-auto">
               <LandingHero
                 onLoginSuccess={handleLoginSuccess}
                 currentFrame={currentFrame}

@@ -21,21 +21,23 @@ export default function DashboardPage() {
       </div>
 
       {/* TOP NAVIGATION BAR */}
-      <div className="relative z-20 max-w-[1280px] mx-auto w-full flex items-center justify-between py-4 animate-in fade-in duration-1000">
+      <div className="relative z-20 max-w-[1280px] mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 py-4 animate-in fade-in duration-1000">
         <Link
           href="/"
-          className="rounded-full bg-white/20 border border-white/50 backdrop-blur-md px-5 py-2.5 text-xs font-mono font-bold text-white hover:bg-lime-400 hover:text-stone-950 transition-all cursor-pointer shadow-xl inline-flex items-center gap-2"
+          className="rounded-full bg-white/20 border border-white/50 backdrop-blur-md px-4 sm:px-5 py-2.5 text-xs font-mono font-bold text-white hover:bg-lime-400 hover:text-stone-950 transition-all cursor-pointer shadow-xl inline-flex items-center gap-2 min-h-11 whitespace-nowrap"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Exit to Home</span>
+          <ArrowLeft className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Exit to Home</span>
+          <span className="sm:hidden">Home</span>
         </Link>
 
         <Link
           href="/arena"
-          className="rounded-full bg-lime-400 border border-lime-200 backdrop-blur-md px-6 py-2.5 text-xs font-mono font-black text-stone-950 hover:bg-lime-300 transition-all cursor-pointer shadow-xl inline-flex items-center gap-2"
+          className="rounded-full bg-lime-400 border border-lime-200 backdrop-blur-md px-4 sm:px-6 py-2.5 text-xs font-mono font-black text-stone-950 hover:bg-lime-300 transition-all cursor-pointer shadow-xl inline-flex items-center gap-2 min-h-11 whitespace-nowrap"
         >
-          <Split className="h-4 w-4" />
-          <span>Go to AI Arena</span>
+          <Split className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Go to AI Arena</span>
+          <span className="sm:hidden">Arena</span>
         </Link>
       </div>
 
