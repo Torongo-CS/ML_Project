@@ -1030,7 +1030,7 @@ export function AgriGlassDashboard() {
               <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/30 min-h-[240px] max-h-[300px] flex items-center justify-center">
                 <img
                   src={
-                    uploadedFile && apiPredictions[activeModel.id]?.gradcam
+                    apiPredictions[activeModel.id]?.gradcam
                       ? apiPredictions[activeModel.id].gradcam
                       : `/GradCAM_Results/${MODEL_FOLDER_MAP[activeModel.id] || 'Yolo11n'}/${selectedSampleImage.replace(/\.JPG$/i, '.jpg')}`
                   }
