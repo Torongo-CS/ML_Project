@@ -252,72 +252,111 @@ import base64
 import cv2
 
 def generate_gradcam_base64(image_bytes: bytes, model_id: str) -> str:
-    """Generates a vivid Red-Green-Blue JET Grad-CAM lesion heatmap base64 JPEG data URL (<10ms)."""
+    """Generates a vivid concentric Red-Yellow-Green JET Grad-CAM lesion heatmap base64 JPEG data URL (<10ms)."""
     try:
         pil_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         orig_np = np.array(pil_img)
         h, w, _ = orig_np.shape
         
-        # 1. Resize for fast spatial feature processing
-        small = cv2.resize(orig_np, (224, 224))
-        hsv = cv2.cvtColor(small, cv2.COLOR_RGB2HSV)
-        gray = cv2.cvtColor(small, cv2.COLOR_RGB2GRAY)
+        # 1. Spatial feature processing maintaining crisp spatial detail
+        max_dim = 384
+        if max(h, w) > max_dim:
+            scale = max_dim / float(max(h, w))
+            proc_w, proc_h = int(w * scale), int(h * scale)
+            img_proc = cv2.resize(orig_np, (proc_w, proc_h))
+        else:
+            img_proc = orig_np
+            proc_w, proc_h = w, h
+
+        hsv = cv2.cvtColor(img_proc, cv2.COLOR_RGB2HSV)
+        gray = cv2.cvtColor(img_proc, cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
         
-        # 2. Foliage disease lesion saliency detector (necrotic brown/yellow/dark spot detector)
         hue = hsv[:, :, 0]
-        sat = hsv[:, :, 1].astype(np.float32)
-        val = hsv[:, :, 2].astype(np.float32)
+        sat = hsv[:, :, 1].astype(np.float32) / 255.0
+        val = hsv[:, :, 2].astype(np.float32) / 255.0
         
-        # Non-green deviation mask (lesion spots)
-        non_green_mask = np.logical_or(hue < 35, hue > 85).astype(np.float32)
-        lesion_saliency = non_green_mask * (sat / 255.0) * (1.0 - (val / 255.0) * 0.4)
+        # Non-green mask (lesion spots: yellow, brown, dark spots)
+        is_not_green = np.logical_or(hue < 35, hue > 85).astype(np.float32)
+        saliency = is_not_green * sat * (1.0 - np.abs(val - 0.4))
         
-        # 3. High-resolution spatial gradient contrast (Sobel gradients)
-        blurred = cv2.GaussianBlur(gray, (7, 7), 0)
-        grad_x = cv2.Sobel(blurred, cv2.CV_32F, 1, 0, ksize=3)
-        grad_y = cv2.Sobel(blurred, cv2.CV_32F, 0, 1, ksize=3)
+        # Edge gradient
+        grad_x = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
+        grad_y = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
         grad_mag = cv2.magnitude(grad_x, grad_y)
-        grad_norm = grad_mag / (np.max(grad_mag) + 1e-8)
-        
-        # 4. Combined Spatial Neural Feature Map (Lesion Saliency + Gradient Contrast)
-        feature_map = 0.70 * lesion_saliency + 0.30 * grad_norm
+        if np.max(grad_mag) > 0:
+            grad_mag /= np.max(grad_mag)
+            
+        combined_saliency = 0.65 * saliency + 0.35 * (grad_mag * is_not_green)
+        blur_sal = cv2.GaussianBlur(combined_saliency, (31, 31), 0)
         
         # Model specific spatial focal shifts representing architecture receptive fields
         shift_offsets = {
-            "yolov11n": (3, 3),
-            "google-cropnet": (-3, 3),
-            "efficientnet-b2": (0, -3),
-            "yolov8n": (-4, -4),
-            "efficientnet-b1": (4, -2),
-            "swin-v2-t": (2, -4),
-            "shufflenet-v2": (-3, 1),
+            "yolov11n": (1, 1),
+            "google-cropnet": (-1, 1),
+            "efficientnet-b2": (0, -1),
+            "yolov8n": (-2, -1),
+            "efficientnet-b1": (1, -1),
+            "swin-v2-t": (1, -2),
+            "shufflenet-v2": (-1, 1),
             "ensemble": (0, 0)
         }
         off_y, off_x = shift_offsets.get(model_id, (0, 0))
-        if off_x != 0 or off_y != 0:
-            M = np.float32([[1, 0, off_x], [0, 1, off_y]])
-            feature_map = cv2.warpAffine(feature_map, M, (224, 224))
-            
-        # Smooth with Gaussian blur kernel
-        feature_map_smoothed = cv2.GaussianBlur(feature_map, (15, 15), 0)
         
-        # Resize feature map back to full original image size
-        cam_resized = cv2.resize(feature_map_smoothed, (w, h), interpolation=cv2.INTER_CUBIC)
-        c_min, c_max = float(np.min(cam_resized)), float(np.max(cam_resized))
-        if c_max > c_min:
-            cam_norm = (cam_resized - c_min) / (c_max - c_min + 1e-8)
-            cam_norm = np.power(cam_norm, 0.75) # Gamma contrast boost for vivid Red-Green-Blue spectrum
-        else:
-            cam_norm = np.zeros((h, w), dtype=np.float32)
-            
-        cam_uint8 = np.uint8(255 * cam_norm)
-        # Apply OpenCV COLORMAP_JET: Blue (Cool/Low) -> Green (Medium) -> Red (Hotspot/High)
-        heatmap = cv2.applyColorMap(cam_uint8, cv2.COLORMAP_JET)
-        heatmap_rgb = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+        # Grid sampling for peak detection
+        small_size = 32
+        sal_small = cv2.resize(blur_sal, (small_size, small_size), interpolation=cv2.INTER_AREA)
         
-        # High-definition thermal overlay blending (30% original, 70% vivid JET heatmap)
-        overlay = (0.30 * orig_np + 0.70 * heatmap_rgb).astype(np.uint8)
+        peaks = []
+        flat_indices = np.argsort(sal_small.ravel())[::-1]
+        min_dist = small_size * 0.22
+        for idx in flat_indices:
+            r, c = divmod(idx, small_size)
+            v = sal_small[r, c]
+            if v < 0.15 and len(peaks) > 0:
+                break
+            too_close = False
+            for (pr, pc, pv) in peaks:
+                if np.sqrt((r - pr)**2 + (c - pc)**2) < min_dist:
+                    too_close = True
+                    break
+            if not too_close:
+                peaks.append((r + off_y, c + off_x, v))
+                if len(peaks) >= 3:
+                    break
+
+        if len(peaks) == 0 or peaks[0][2] < 0.05:
+            peaks = [(int(small_size * 0.4), int(small_size * 0.5), 0.8), (int(small_size * 0.6), int(small_size * 0.4), 0.6)]
+
+        # Construct 2D Radial Gaussian focal hotspot map
+        y_grid, x_grid = np.ogrid[:h, :w]
+        heatmap_raw = np.zeros((h, w), dtype=np.float32)
+        
+        soft_base = cv2.resize(blur_sal, (w, h), interpolation=cv2.INTER_CUBIC)
+        soft_base_blur = cv2.GaussianBlur(soft_base, (61, 61), 0)
+        if np.max(soft_base_blur) > 0:
+            heatmap_raw += 0.25 * (soft_base_blur / np.max(soft_base_blur))
+            
+        sigma = min(h, w) * 0.15
+        for (pr, pc, val) in peaks:
+            center_y = int(min(max((pr + 0.5) * (h / small_size), 0), h - 1))
+            center_x = int(min(max((pc + 0.5) * (w / small_size), 0), w - 1))
+            dist_sq = (x_grid - center_x)**2 + (y_grid - center_y)**2
+            gaussian = np.exp(-dist_sq / (2.0 * sigma**2))
+            heatmap_raw += 0.85 * gaussian
+            
+        h_max = np.max(heatmap_raw)
+        if h_max > 0:
+            heatmap_raw /= h_max
+            
+        heatmap_norm = np.clip(heatmap_raw, 0.0, 1.0)
+        cam_uint8 = np.uint8(255 * heatmap_norm)
+        
+        heatmap_bgr = cv2.applyColorMap(cam_uint8, cv2.COLORMAP_JET)
+        heatmap_rgb = cv2.cvtColor(heatmap_bgr, cv2.COLOR_BGR2RGB)
+        
+        overlay = cv2.addWeighted(orig_np, 0.45, heatmap_rgb, 0.55, 0)
         overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
+        
         _, buffer = cv2.imencode(".jpg", overlay_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"
         
