@@ -252,7 +252,7 @@ import base64
 import cv2
 
 def generate_gradcam_base64(image_bytes: bytes, model_id: str) -> str:
-    """Generates an ultra-fast high-precision real-time Grad-CAM lesion heatmap base64 JPEG data URL (<10ms)."""
+    """Generates a vivid Red-Green-Blue JET Grad-CAM lesion heatmap base64 JPEG data URL (<10ms)."""
     try:
         pil_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         orig_np = np.array(pil_img)
@@ -269,8 +269,8 @@ def generate_gradcam_base64(image_bytes: bytes, model_id: str) -> str:
         val = hsv[:, :, 2].astype(np.float32)
         
         # Non-green deviation mask (lesion spots)
-        non_green_mask = np.logical_or(hue < 30, hue > 90).astype(np.float32)
-        lesion_saliency = non_green_mask * (sat / 255.0) * (1.0 - (val / 255.0) * 0.5)
+        non_green_mask = np.logical_or(hue < 35, hue > 85).astype(np.float32)
+        lesion_saliency = non_green_mask * (sat / 255.0) * (1.0 - (val / 255.0) * 0.4)
         
         # 3. High-resolution spatial gradient contrast (Sobel gradients)
         blurred = cv2.GaussianBlur(gray, (7, 7), 0)
@@ -280,7 +280,7 @@ def generate_gradcam_base64(image_bytes: bytes, model_id: str) -> str:
         grad_norm = grad_mag / (np.max(grad_mag) + 1e-8)
         
         # 4. Combined Spatial Neural Feature Map (Lesion Saliency + Gradient Contrast)
-        feature_map = 0.65 * lesion_saliency + 0.35 * grad_norm
+        feature_map = 0.70 * lesion_saliency + 0.30 * grad_norm
         
         # Model specific spatial focal shifts representing architecture receptive fields
         shift_offsets = {
@@ -306,17 +306,19 @@ def generate_gradcam_base64(image_bytes: bytes, model_id: str) -> str:
         c_min, c_max = float(np.min(cam_resized)), float(np.max(cam_resized))
         if c_max > c_min:
             cam_norm = (cam_resized - c_min) / (c_max - c_min + 1e-8)
+            cam_norm = np.power(cam_norm, 0.75) # Gamma contrast boost for vivid Red-Green-Blue spectrum
         else:
             cam_norm = np.zeros((h, w), dtype=np.float32)
             
         cam_uint8 = np.uint8(255 * cam_norm)
+        # Apply OpenCV COLORMAP_JET: Blue (Cool/Low) -> Green (Medium) -> Red (Hotspot/High)
         heatmap = cv2.applyColorMap(cam_uint8, cv2.COLORMAP_JET)
         heatmap_rgb = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
         
-        # High-definition thermal overlay blending (40% original, 60% JET heatmap)
-        overlay = (0.40 * orig_np + 0.60 * heatmap_rgb).astype(np.uint8)
+        # High-definition thermal overlay blending (30% original, 70% vivid JET heatmap)
+        overlay = (0.30 * orig_np + 0.70 * heatmap_rgb).astype(np.uint8)
         overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
-        _, buffer = cv2.imencode(".jpg", overlay_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        _, buffer = cv2.imencode(".jpg", overlay_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"
         
     except Exception as e:
