@@ -6,11 +6,13 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?style=for-the-badge&logo=pytorch)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-**AgriVision AI** is an advanced, production-grade agricultural AI diagnostic platform for automated crop leaf pathology, featuring real-time multi-model inference, spatial Grad-CAM explainability, soft-voting ensemble consensus, and a modern glassmorphic dashboard interface.
+**AgriCure AI** is an advanced, production-grade agricultural AI diagnostic platform for automated crop leaf pathology, featuring real-time multi-model inference, spatial Grad-CAM explainability, soft-voting ensemble consensus, and a modern glassmorphic dashboard interface.
 
 ---
 
 ## 📐 System Flowchart & Pipeline Architecture
+
+![AgriVision AI High-Precision System Flowchart](public/system_flowchart_diagram.png)
 
 ```mermaid
 flowchart TD
