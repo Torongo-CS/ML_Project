@@ -23,6 +23,10 @@
 # misc
 .DS_Store
 *.pem
+*.zip
+yolo11n-cls (1)/
+GradCAM_Results.zip
+Models.zip
 
 # debug
 npm-debug.log*
@@ -50,6 +54,3 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
-# Data and Models
-models/*
-!models/.keep

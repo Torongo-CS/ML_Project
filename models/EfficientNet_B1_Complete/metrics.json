@@ -1,0 +1,9 @@
+{
+    "model": "EfficientNet_B1",
+    "accuracy": 0.9803664921465969,
+    "precision": 0.9805171636490089,
+    "recall": 0.9803664921465969,
+    "f1": 0.9804023669272871,
+    "best_epoch": 12,
+    "best_val_accuracy": 0.9808027923211169
+}

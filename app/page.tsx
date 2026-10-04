@@ -52,7 +52,7 @@ export default function Home() {
           alt="Lush Greenery Tapestry Background"
           fill
           priority
-          className="object-cover transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="object-cover transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] animate-continuous-leaf-float"
         />
       </div>
 

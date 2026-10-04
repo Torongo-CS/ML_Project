@@ -13,6 +13,8 @@ import {
   Plus,
   Play,
   Loader2,
+  Trash2,
+  Sparkles,
 } from "lucide-react";
 
 interface ArenaRow {
@@ -38,66 +40,66 @@ const AVAILABLE_DISEASES = [
   "Tomato_healthy",
 ];
 
-// Initial rows with ZERO mock predictions - images will be fed to live backend for real results
+// Initial rows loaded directly from Test_Images_For_gradcam
 const INITIAL_ROWS: ArenaRow[] = [
   {
     id: "row-1",
-    imageSrc: "/bg-lush-tapestry.jpeg",
+    imageSrc: "/Test_Images_For_gradcam/Potato_Early_Blight.JPG",
     realLabel: "Potato___Early_blight",
     predictions: {},
   },
   {
     id: "row-2",
-    imageSrc: "/bg-sunset.jpeg",
+    imageSrc: "/Test_Images_For_gradcam/Potato_Late_Blight.JPG",
     realLabel: "Potato___Late_blight",
     predictions: {},
   },
   {
     id: "row-3",
-    imageSrc: "/bg-tropical.jpeg",
+    imageSrc: "/Test_Images_For_gradcam/Potato_healthy.JPG",
     realLabel: "Potato___healthy",
     predictions: {},
   },
   {
     id: "row-4",
-    imageSrc: "/green.jpeg",
+    imageSrc: "/Test_Images_For_gradcam/Tomato_Early_Blight.JPG",
     realLabel: "Tomato_Early_blight",
     predictions: {},
   },
   {
     id: "row-5",
-    imageSrc: "/hero-subject.png",
-    realLabel: "Tomato_Late_blight",
+    imageSrc: "/Test_Images_For_gradcam/Tomato_Healthy.JPG",
+    realLabel: "Tomato_healthy",
     predictions: {},
   },
   {
     id: "row-6",
-    imageSrc: "/bg-lush-tapestry.jpeg",
-    realLabel: "Tomato_Leaf_Mold",
+    imageSrc: "/Test_Images_For_gradcam/Tomato_Late_Blight.JPG",
+    realLabel: "Tomato_Late_blight",
     predictions: {},
   },
   {
     id: "row-7",
-    imageSrc: "/bg-tropical.jpeg",
-    realLabel: "Tomato_Septoria_leaf_spot",
+    imageSrc: "/Test_Images_For_gradcam/Tomato_Mold.JPG",
+    realLabel: "Tomato_Leaf_Mold",
     predictions: {},
   },
   {
     id: "row-8",
-    imageSrc: "/green.jpeg",
-    realLabel: "Tomato_healthy",
+    imageSrc: "/Test_Images_For_gradcam/Tomato_septoria.JPG",
+    realLabel: "Tomato_Septoria_leaf_spot",
     predictions: {},
   },
 ];
 
 const MODEL_COLUMNS = [
-  { key: "efficientnet-b1", label: "EfficientNet_B1" },
-  { key: "efficientnet-b2", label: "EfficientNet_B2" },
-  { key: "google-cropnet", label: "Google_CropNet" },
-  { key: "shufflenet-v2", label: "ShuffleNet_V2" },
-  { key: "swin-v2-t", label: "Swin_V2_T" },
-  { key: "yolov8n", label: "YOLOv8n" },
+  { key: "ensemble", label: "Ensemble (Soft Vote)" },
   { key: "yolov11n", label: "YOLOv11n" },
+  { key: "yolov8n", label: "YOLOv8n" },
+  { key: "google-cropnet", label: "Google_CropNet" },
+  { key: "efficientnet-b2", label: "EfficientNet_B2" },
+  { key: "swin-v2-t", label: "Swin_V2_T" },
+  { key: "shufflenet-v2", label: "ShuffleNet_V2" },
 ];
 
 function normalize(str: string): string {
@@ -125,7 +127,7 @@ export default function AiArenaPage() {
       if (imageFile) {
         fileToUpload = imageFile;
       } else {
-        const fetchSrc = imageSrc || "/green.jpeg";
+        const fetchSrc = imageSrc || "/Test_Images_For_gradcam/Potato_Early_Blight.JPG";
         const res = await fetch(fetchSrc);
         fileToUpload = await res.blob();
       }
@@ -210,6 +212,11 @@ export default function AiArenaPage() {
     );
   };
 
+  // Delete a specific row
+  const handleDeleteRow = (rowId: string) => {
+    setRows((prev) => prev.filter((r) => r.id !== rowId));
+  };
+
   // Calculate Accuracy metrics per model across all rows with live predictions
   const calculateModelAccuracy = (colKey: string) => {
     let correct = 0;
@@ -229,14 +236,14 @@ export default function AiArenaPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col bg-stone-950 text-white font-sans selection:bg-lime-500/30 selection:text-white overflow-x-hidden p-4 sm:p-8 select-none">
-      {/* PERSISTENT BACKGROUND IMAGE - MATCHING DASHBOARD EXACTLY */}
+      {/* PERSISTENT BACKGROUND IMAGE */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none filter blur-[10px] brightness-[102%] saturate-[110%] scale-110 opacity-100 transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
         <Image
           src="/bg-lush-tapestry.jpeg"
           alt="Lush Greenery Tapestry Background"
           fill
           priority
-          className="object-cover transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="object-cover transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] animate-continuous-leaf-float"
         />
       </div>
 
@@ -257,7 +264,7 @@ export default function AiArenaPage() {
               Multi-Model AI Diagnostic Arena
             </h1>
             <p className="text-xs sm:text-sm text-white/90 font-bold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-              Live Neural Net Classification Feed - Images Are Streamed Real-Time to Port 8000
+              Live Neural Net Classification Feed — Real-Time Inference Streamed from Port 8000
             </p>
           </div>
 
@@ -303,19 +310,19 @@ export default function AiArenaPage() {
 
           <div className="rounded-2xl bg-white/20 border-2 border-white/60 p-5 backdrop-blur-2xl shadow-lg space-y-1">
             <span className="text-[11px] font-black text-lime-300 uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-              Active Models Tested
+              Models Evaluated
             </span>
             <span className="text-2xl font-black text-white font-mono drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              7 Models
+              7 Models (Inc. Ensemble)
             </span>
           </div>
 
           <div className="rounded-2xl bg-white/20 border-2 border-white/60 p-5 backdrop-blur-2xl shadow-lg space-y-1">
             <span className="text-[11px] font-black text-lime-300 uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-              Inference Endpoint
+              Inference Engine
             </span>
             <span className="text-sm font-black text-lime-300 font-mono truncate block drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              http://localhost:8000
+              Soft-Vote Ensemble API
             </span>
           </div>
 
@@ -343,15 +350,19 @@ export default function AiArenaPage() {
 
           {/* SCROLLABLE TABLE */}
           <div className="overflow-x-auto rounded-2xl border-2 border-white/40 bg-black/20">
-            <table className="w-full text-left text-xs border-collapse min-w-[1240px]">
+            <table className="w-full text-left text-xs border-collapse min-w-[1440px]">
               <thead>
                 <tr className="bg-white/20 text-lime-300 font-black uppercase tracking-wider border-b-2 border-white/40">
+                  <th className="p-3.5 w-12 text-center">Action</th>
                   <th className="p-3.5 w-20 text-center">Image</th>
-                  <th className="p-3.5 w-44">Real Label</th>
+                  <th className="p-3.5 min-w-[210px] w-56">Real Label</th>
                   {MODEL_COLUMNS.map((col) => (
-                    <th key={col.key} className="p-3.5 text-center min-w-[130px]">
-                      <div>{col.label}</div>
-                      <div className="text-[10px] text-white/80 font-mono mt-0.5">
+                    <th key={col.key} className={`p-3.5 text-center min-w-[140px] ${col.key === 'ensemble' ? 'bg-lime-400/20 text-lime-200 font-black border-x border-lime-400/50' : ''}`}>
+                      <div className="flex items-center justify-center gap-1">
+                        {col.key === 'ensemble' && <Sparkles className="h-3.5 w-3.5 text-lime-300" />}
+                        <span>{col.label}</span>
+                      </div>
+                      <div className="text-[10px] text-white/90 font-mono mt-0.5">
                         Match: {calculateModelAccuracy(col.key)}
                       </div>
                     </th>
@@ -361,6 +372,18 @@ export default function AiArenaPage() {
               <tbody className="divide-y divide-white/20 font-bold text-white">
                 {rows.map((row) => (
                   <tr key={row.id} className="hover:bg-white/10 transition-colors">
+                    {/* Delete Row Action */}
+                    <td className="p-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRow(row.id)}
+                        className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-400/40 transition-all cursor-pointer shadow-sm hover:scale-110"
+                        title="Delete this row"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+
                     {/* 1. Image Thumbnail */}
                     <td className="p-3 text-center">
                       <div className="h-12 w-12 rounded-xl overflow-hidden border-2 border-white/50 mx-auto shadow-md relative bg-black/30">
@@ -373,21 +396,21 @@ export default function AiArenaPage() {
                     </td>
 
                     {/* 2. Real Label (Dropdown selector for Ground Truth) */}
-                    <td className="p-3">
+                    <td className="p-3 min-w-[210px] w-56">
                       <select
                         value={row.realLabel}
                         onChange={(e) => handleLabelChange(row.id, e.target.value)}
-                        className="w-full rounded-xl bg-white/20 border-2 border-white/60 px-2.5 py-1.5 text-xs font-extrabold text-white cursor-pointer hover:bg-white/30 transition-all outline-none shadow-sm"
+                        className="w-full rounded-xl bg-white/20 border-2 border-white/60 px-3 py-2 text-xs font-black text-white cursor-pointer hover:bg-white/30 transition-all outline-none shadow-sm truncate"
                       >
                         {AVAILABLE_DISEASES.map((d) => (
-                          <option key={d} value={d} className="bg-stone-900 text-white">
+                          <option key={d} value={d} className="bg-stone-900 text-white font-extrabold">
                             {formatLabel(d)}
                           </option>
                         ))}
                       </select>
                     </td>
 
-                    {/* 3. Live Model Predictions (7 Columns) */}
+                    {/* 3. Live Model Predictions (7 Columns, Ensemble First) */}
                     {MODEL_COLUMNS.map((col) => {
                       const predObj = row.predictions[col.key];
                       const pathogen = predObj?.pathogen;
@@ -395,7 +418,7 @@ export default function AiArenaPage() {
 
                       if (isPredicting) {
                         return (
-                          <td key={col.key} className="p-2 text-center">
+                          <td key={col.key} className={`p-2 text-center ${col.key === 'ensemble' ? 'bg-lime-400/10 border-x border-lime-400/30' : ''}`}>
                             <div className="rounded-xl bg-white/15 border border-white/40 p-2 flex items-center justify-center gap-1 text-[11px] text-lime-300">
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               <span>Inferring...</span>
@@ -406,7 +429,7 @@ export default function AiArenaPage() {
 
                       if (!pathogen) {
                         return (
-                          <td key={col.key} className="p-2 text-center">
+                          <td key={col.key} className={`p-2 text-center ${col.key === 'ensemble' ? 'bg-lime-400/10 border-x border-lime-400/30' : ''}`}>
                             <button
                               type="button"
                               onClick={() => runPredictionForRow(row.id, row.file, row.imageSrc)}
@@ -421,10 +444,12 @@ export default function AiArenaPage() {
                       const isMatch = normalize(pathogen) === normalize(row.realLabel);
 
                       return (
-                        <td key={col.key} className="p-2 text-center">
+                        <td key={col.key} className={`p-2 text-center ${col.key === 'ensemble' ? 'bg-lime-400/10 border-x border-lime-400/30' : ''}`}>
                           <div
                             className={`rounded-xl p-2 border-2 transition-all shadow-md space-y-0.5 ${
-                              isMatch
+                              col.key === 'ensemble' && isMatch
+                                ? "bg-lime-400/30 border-lime-300 text-lime-100 shadow-[0_0_18px_rgba(163,230,53,0.4)]"
+                                : isMatch
                                 ? "bg-emerald-500/30 border-emerald-400/80 text-emerald-100 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
                                 : "bg-rose-500/30 border-rose-400/80 text-rose-100 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
                             }`}

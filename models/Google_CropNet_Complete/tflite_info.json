@@ -1,0 +1,27 @@
+{
+    "model": "Google_CropNet",
+    "num_classes": 8,
+    "classes": [
+        "Potato___Early_blight",
+        "Potato___Late_blight",
+        "Potato___healthy",
+        "Tomato_Early_blight",
+        "Tomato_Late_blight",
+        "Tomato_Leaf_Mold",
+        "Tomato_Septoria_leaf_spot",
+        "Tomato_healthy"
+    ],
+    "input_shape": [
+        1,
+        224,
+        224,
+        3
+    ],
+    "input_dtype": "float32",
+    "image_size": 224,
+    "normalization": {
+        "rescaling": "1./255"
+    },
+    "source_model": "/content/drive/MyDrive/Research/PlantDisease_Results/Google_CropNet/best.h5",
+    "tflite_model": "/content/drive/MyDrive/Research/PlantDisease_Results/Google_CropNet/tflite/Google_CropNet.tflite"
+}
