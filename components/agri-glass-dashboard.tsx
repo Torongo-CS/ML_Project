@@ -18,6 +18,7 @@ import {
   PieChart,
   HelpCircle,
   AlertCircle,
+  Clipboard,
 } from "lucide-react";
 
 interface AIModel {
@@ -362,75 +363,102 @@ export function AgriGlassDashboard() {
     return () => clearInterval(intervalId);
   }, [actionDirective]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const dataUrl = event.target?.result as string;
-        if (dataUrl) {
-          setUploadedFile(dataUrl);
-          try {
-            sessionStorage.setItem("agri_uploaded_file", dataUrl);
-          } catch (err) {
-            // Storage quota warning fallback
-          }
-        }
-      };
-      reader.readAsDataURL(file);
-
-      setIsGenerating(true);
-      setDetectedPathogen("Analyzing Image...");
-      setActionDirective("...");
+  const processAndPredictFile = async (file: File) => {
+    setUploadedFile(URL.createObjectURL(file));
+    setIsGenerating(true);
+    setDetectedPathogen("Analyzing Image...");
+    setActionDirective("...");
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file, file.name || `pasted_crop_${Date.now()}.png`);
       
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
+      const mlRes = await fetch("http://localhost:8000/predict", {
+        method: "POST",
+        body: formData
+      }).catch(() => null);
+      
+      if (mlRes && mlRes.ok) {
+        const mlData = await mlRes.json();
+        const activeModelId = selectedModel?.id || INITIAL_AI_MODELS[0].id;
+        const pathogenName = mlData.predictions?.[activeModelId]?.pathogen || "Healthy (No Pathogen)";
         
-        // 1. Fetch Machine Learning predictions
-        const mlRes = await fetch("http://localhost:8000/predict", {
-          method: "POST",
-          body: formData
+        const actionRes = await fetch('/api/action-directive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pathogen: pathogenName })
         }).catch(() => null);
         
-        if (mlRes && mlRes.ok) {
-          const mlData = await mlRes.json();
-          const activeModelId = selectedModel?.id || INITIAL_AI_MODELS[0].id;
-          const pathogenName = mlData.predictions?.[activeModelId]?.pathogen || "Healthy (No Pathogen)";
-          
-          // 2. Fetch Action Directive using the ML result
-          const actionRes = await fetch('/api/action-directive', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pathogen: pathogenName })
-          }).catch(() => null);
-          
-          let directive = "Unable to fetch recommendation.";
-          
-          if (actionRes && actionRes.ok) {
-            const actionData = await actionRes.json();
-            directive = actionData.actionDirective || directive;
-          }
-          
-          // 3. Update UI state
-          setApiPredictions(mlData.predictions || {});
-          setDetectedPathogen(pathogenName);
-          setActionDirective(directive);
-          
-        } else {
-          console.warn("Backend API Error or not running. Make sure FastAPI is running on port 8000.");
-          setDetectedPathogen("Backend Offline");
-          setActionDirective("Start Python backend (api_backend/main.py) to run live model inference.");
+        let directive = "Unable to fetch recommendation.";
+        
+        if (actionRes && actionRes.ok) {
+          const actionData = await actionRes.json();
+          directive = actionData.actionDirective || directive;
         }
-      } catch (err) {
-        console.error("Failed to connect to backend", err);
-        setDetectedPathogen("Error Connecting");
-        setActionDirective("Upload a crop image to generate an AI-driven action directive.");
-      } finally {
-        setIsGenerating(false);
+        
+        setApiPredictions(mlData.predictions || {});
+        setDetectedPathogen(pathogenName);
+        setActionDirective(directive);
+        
+      } else {
+        console.warn("Backend API Error or not running. Make sure FastAPI is running on port 8000.");
+        setDetectedPathogen("Backend Offline");
+        setActionDirective("Start Python backend (api_backend/main.py) to run live model inference.");
+      }
+    } catch (err) {
+      console.error("Failed to connect to backend", err);
+      setDetectedPathogen("Error Connecting");
+      setActionDirective("Upload or paste a crop foliage image to generate an AI-driven action directive.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processAndPredictFile(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith("image/")) {
+        processAndPredictFile(file);
       }
     }
   };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Clipboard paste event listener (Ctrl+V / Cmd+V anywhere on dashboard)
+  React.useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            e.preventDefault();
+            const file = new File([blob], `pasted_crop_${Date.now()}.png`, { type: blob.type });
+            processAndPredictFile(file);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [selectedModel]);
 
   // Active Pathogen and Confidence matching the top-1 predicted class of the selected model
   const activeDetectedPathogen = React.useMemo(() => {
@@ -567,7 +595,11 @@ export function AgriGlassDashboard() {
                 <FileImage className="h-4 w-4 text-lime-300" />
                 Input Image Section
               </label>
-              <label className="block rounded-2xl border-2 border-dashed border-white/60 bg-white/20 p-2 text-center hover:border-lime-300 hover:bg-white/30 transition-all cursor-pointer relative overflow-hidden group backdrop-blur-3xl shadow-md min-h-[140px] flex items-center justify-center">
+              <label 
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                className="block rounded-2xl border-2 border-dashed border-white/60 bg-white/20 p-2 text-center hover:border-lime-300 hover:bg-white/30 transition-all cursor-pointer relative overflow-hidden group backdrop-blur-3xl shadow-md min-h-[140px] flex items-center justify-center"
+              >
                 <input
                   type="file"
                   accept="image/*"
@@ -579,7 +611,7 @@ export function AgriGlassDashboard() {
                      <img src={uploadedFile.startsWith('blob:') ? uploadedFile : `/${uploadedFile.replace('/', '')}`} alt="Uploaded foliage" className="w-full h-auto max-h-64 object-contain" />
                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <UploadCloud className="h-6 w-6 text-white mb-2" />
-                        <span className="text-white font-bold text-sm">Change Image</span>
+                        <span className="text-white font-bold text-sm">Change Image (or Paste Ctrl+V)</span>
                      </div>
                    </div>
                 ) : (
@@ -589,10 +621,11 @@ export function AgriGlassDashboard() {
                   </div>
                   <div>
                     <p className="text-base font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] group-hover:text-lime-300 transition-colors">
-                      Click to upload foliage image or drag and drop sample
+                      Click to upload, drag & drop, or paste image
                     </p>
-                    <p className="text-xs text-white/95 mt-1 font-bold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                      Supports high-resolution JPG, PNG, and WebP crop foliage scans
+                    <p className="text-xs text-lime-300/90 mt-1 font-bold drop-shadow flex items-center justify-center gap-1">
+                      <Clipboard className="h-3.5 w-3.5 text-lime-300" />
+                      <span>Press <strong>Ctrl+V</strong> to paste copied browser images</span>
                     </p>
                   </div>
                 </div>

@@ -205,6 +205,48 @@ export default function AiArenaPage() {
     }
   };
 
+  // Clipboard paste event listener (Ctrl+V / Cmd+V anywhere in AI Arena)
+  useEffect(() => {
+    const handlePasteInArena = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const pastedFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            e.preventDefault();
+            pastedFiles.push(new File([blob], `pasted_crop_${Date.now()}_${i}.png`, { type: blob.type }));
+          }
+        }
+      }
+
+      if (pastedFiles.length > 0) {
+        const newRows: ArenaRow[] = pastedFiles.map((file, idx) => ({
+          id: `upload-${Date.now()}-${idx}`,
+          imageSrc: URL.createObjectURL(file),
+          file: file,
+          realLabel: "Potato___Early_blight",
+          predictions: {},
+          isPredicting: true,
+        }));
+
+        setRows((prev) => [...prev, ...newRows]);
+
+        await Promise.all(
+          newRows.map((newRow) =>
+            runPredictionForRow(newRow.id, newRow.file, newRow.imageSrc)
+          )
+        );
+      }
+    };
+
+    window.addEventListener("paste", handlePasteInArena);
+    return () => window.removeEventListener("paste", handlePasteInArena);
+  }, []);
+
   // Update ground truth Real Label for a row
   const handleLabelChange = (rowId: string, newLabel: string) => {
     setRows((prev) =>
