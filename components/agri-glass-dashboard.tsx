@@ -438,19 +438,64 @@ export function AgriGlassDashboard() {
 
   // Clipboard paste event listener (Ctrl+V / Cmd+V anywhere on dashboard)
   React.useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
+    const handlePaste = async (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
-      if (!items) return;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.startsWith("image/")) {
+            const blob = item.getAsFile();
+            if (blob) {
+              e.preventDefault();
+              const file = new File([blob], `pasted_crop_${Date.now()}.png`, { type: blob.type });
+              processAndPredictFile(file);
+              return;
+            }
+          }
+        }
+      }
 
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.startsWith("image/")) {
-          const blob = item.getAsFile();
-          if (blob) {
+      const files = e.clipboardData?.files;
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].type.startsWith("image/")) {
             e.preventDefault();
-            const file = new File([blob], `pasted_crop_${Date.now()}.png`, { type: blob.type });
+            processAndPredictFile(files[i]);
+            return;
+          }
+        }
+      }
+
+      // Fallback: Check HTML or plain text clipboard for pasted image URLs from browser
+      const html = e.clipboardData?.getData("text/html");
+      if (html) {
+        const match = html.match(/src=["'](https?:\/\/[^"']+|data:image\/[^"']+)["']/i);
+        if (match && match[1]) {
+          e.preventDefault();
+          try {
+            const res = await fetch(match[1]);
+            const blob = await res.blob();
+            const file = new File([blob], `pasted_browser_image_${Date.now()}.png`, { type: blob.type || "image/png" });
             processAndPredictFile(file);
-            break;
+            return;
+          } catch (err) {
+            console.warn("Failed to fetch image from pasted HTML src", err);
+          }
+        }
+      }
+
+      const text = e.clipboardData?.getData("text/plain")?.trim();
+      if (text && (text.startsWith("http://") || text.startsWith("https://") || text.startsWith("data:image/"))) {
+        if (/\.(jpg|jpeg|png|webp|gif|bmp)(\?.*)?$/i.test(text) || text.startsWith("data:image/")) {
+          e.preventDefault();
+          try {
+            const res = await fetch(text);
+            const blob = await res.blob();
+            const file = new File([blob], `pasted_url_image_${Date.now()}.png`, { type: blob.type || "image/png" });
+            processAndPredictFile(file);
+            return;
+          } catch (err) {
+            console.warn("Failed to fetch image from pasted text URL", err);
           }
         }
       }

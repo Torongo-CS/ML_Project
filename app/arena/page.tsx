@@ -209,16 +209,46 @@ export default function AiArenaPage() {
   useEffect(() => {
     const handlePasteInArena = async (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
-      if (!items) return;
-
       const pastedFiles: File[] = [];
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.startsWith("image/")) {
-          const blob = item.getAsFile();
-          if (blob) {
+
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.startsWith("image/")) {
+            const blob = item.getAsFile();
+            if (blob) {
+              e.preventDefault();
+              pastedFiles.push(new File([blob], `pasted_crop_${Date.now()}_${i}.png`, { type: blob.type }));
+            }
+          }
+        }
+      }
+
+      if (pastedFiles.length === 0) {
+        const files = e.clipboardData?.files;
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith("image/")) {
+              e.preventDefault();
+              pastedFiles.push(files[i]);
+            }
+          }
+        }
+      }
+
+      if (pastedFiles.length === 0) {
+        const html = e.clipboardData?.getData("text/html");
+        if (html) {
+          const match = html.match(/src=["'](https?:\/\/[^"']+|data:image\/[^"']+)["']/i);
+          if (match && match[1]) {
             e.preventDefault();
-            pastedFiles.push(new File([blob], `pasted_crop_${Date.now()}_${i}.png`, { type: blob.type }));
+            try {
+              const res = await fetch(match[1]);
+              const blob = await res.blob();
+              pastedFiles.push(new File([blob], `pasted_browser_image_${Date.now()}.png`, { type: blob.type || "image/png" }));
+            } catch (err) {
+              console.warn("Failed to fetch image from pasted HTML src", err);
+            }
           }
         }
       }
