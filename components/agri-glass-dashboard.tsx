@@ -568,25 +568,25 @@ export function AgriGlassDashboard() {
   }, [activeDetectedPathogen]);
 
   return (
-    <div className="w-[80vw] max-w-[1280px] mx-auto font-sans select-none animate-in fade-in zoom-in-95 slide-in-from-bottom-28 duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+    <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-8 font-sans select-none animate-in fade-in zoom-in-95 slide-in-from-bottom-28 duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
       {/* 100% LUMINOUS FROSTED LIGHT GLASS CARD OVER TROPICAL LEAF BACKGROUND */}
-      <div className="rounded-3xl bg-white/20 backdrop-blur-2xl border-2 border-white/60 p-8 sm:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.35)] text-white space-y-8 text-left">
+      <div className="rounded-2xl sm:rounded-3xl bg-white/20 backdrop-blur-2xl border-2 border-white/60 p-4 sm:p-8 lg:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.35)] text-white space-y-6 sm:space-y-8 text-left">
         
         {/* Header Title Bar */}
-        <div className="border-b-2 border-white/40 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div className="border-b-2 border-white/40 pb-4 sm:pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-black text-lime-300 uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              <Sparkles className="h-4 w-4 text-lime-300" />
-              <span>AGRICULTURAL AI PLATFORM</span>
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-lime-300" />
+              <span className="truncate">AGRICULTURAL AI PLATFORM</span>
             </div>
-            <h2 className="font-sans text-2xl sm:text-4xl font-extrabold tracking-tight text-white mt-1 drop-shadow-[0_3px_8px_rgba(0,0,0,0.8)]">
+            <h2 className="font-sans text-xl sm:text-2xl lg:text-4xl font-extrabold tracking-tight text-white mt-1 drop-shadow-[0_3px_8px_rgba(0,0,0,0.8)] leading-snug">
               High-Precision Crop Pathology Dashboard
             </h2>
           </div>
         </div>
 
         {/* 2-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           
           {/* LEFT COLUMN: MODEL SELECTION & IMAGE INPUT */}
           <div className="space-y-6">
@@ -594,24 +594,24 @@ export function AgriGlassDashboard() {
             {/* 1. MODEL SELECTION */}
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <Layers className="h-4 w-4 text-lime-300" />
-                Select AI Model
+                <Layers className="h-4 w-4 shrink-0 text-lime-300" />
+                <span>Select AI Model</span>
               </label>
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full rounded-2xl bg-white/25 border-2 border-white/60 px-5 py-4 text-sm font-bold text-white flex items-center justify-between hover:bg-white/35 transition-all cursor-pointer shadow-lg backdrop-blur-3xl"
+                  className="w-full rounded-2xl bg-white/25 border-2 border-white/60 px-4 sm:px-5 py-3 sm:py-4 text-sm font-bold text-white flex items-center justify-between hover:bg-white/35 transition-all cursor-pointer shadow-lg backdrop-blur-3xl min-h-12"
                 >
-                  <div className="flex items-center gap-3">
-                    <Zap className="h-5 w-5 text-lime-300" />
-                    <span className="text-base font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{cleanModelName(activeModel.name)}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Zap className="h-5 w-5 shrink-0 text-lime-300" />
+                    <span className="text-sm sm:text-base font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">{cleanModelName(activeModel.name)}</span>
                   </div>
-                  <ChevronDown className={`h-5 w-5 text-white transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-5 w-5 shrink-0 text-white transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-white/30 border-2 border-white/70 p-2 shadow-2xl backdrop-blur-3xl space-y-1">
+                  <div className="absolute top-full left-0 right-0 mt-2 z-50 max-h-64 overflow-y-auto rounded-2xl bg-white/30 border-2 border-white/70 p-2 shadow-2xl backdrop-blur-3xl space-y-1">
                     {aiModels.map((model) => (
                       <button
                         key={model.id}
@@ -620,13 +620,13 @@ export function AgriGlassDashboard() {
                           setSelectedModel(model);
                           setIsDropdownOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black transition-all flex items-center justify-between cursor-pointer ${
+                        className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs font-black transition-all flex items-center justify-between cursor-pointer min-h-10 ${
                           activeModel.id === model.id
                             ? "bg-lime-400 text-stone-950 font-black shadow-md"
                             : "text-white hover:bg-white/30 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
                         }`}
                       >
-                        <span className="text-sm font-extrabold">{cleanModelName(model.name)}</span>
+                        <span className="text-xs sm:text-sm font-extrabold truncate">{cleanModelName(model.name)}</span>
                       </button>
                     ))}
                   </div>
@@ -637,13 +637,13 @@ export function AgriGlassDashboard() {
             {/* 2. INPUT SECTION (IMAGE UPLOAD) */}
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <FileImage className="h-4 w-4 text-lime-300" />
-                Input Image Section
+                <FileImage className="h-4 w-4 shrink-0 text-lime-300" />
+                <span>Input Image Section</span>
               </label>
-              <label 
+              <label
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                className="block rounded-2xl border-2 border-dashed border-white/60 bg-white/20 p-2 text-center hover:border-lime-300 hover:bg-white/30 transition-all cursor-pointer relative overflow-hidden group backdrop-blur-3xl shadow-md min-h-[140px] flex items-center justify-center"
+                className="block rounded-2xl border-2 border-dashed border-white/60 bg-white/20 p-3 sm:p-4 text-center hover:border-lime-300 hover:bg-white/30 transition-all cursor-pointer relative overflow-hidden group backdrop-blur-3xl shadow-md min-h-[120px] sm:min-h-[140px] flex items-center justify-center"
               >
                 <input
                   type="file"
@@ -652,25 +652,25 @@ export function AgriGlassDashboard() {
                   className="hidden"
                 />
                 {uploadedFile ? (
-                   <div className="relative w-full rounded-xl overflow-hidden border border-white/30 bg-black/20 flex items-center justify-center min-h-[140px]">
-                     <img src={uploadedFile.startsWith('blob:') ? uploadedFile : `/${uploadedFile.replace('/', '')}`} alt="Uploaded foliage" className="w-full h-auto max-h-64 object-contain" />
+                   <div className="relative w-full rounded-xl overflow-hidden border border-white/30 bg-black/20 flex items-center justify-center min-h-[120px] sm:min-h-[140px]">
+                     <img src={uploadedFile.startsWith('blob:') ? uploadedFile : `/${uploadedFile.replace('/', '')}`} alt="Uploaded foliage" className="w-full h-auto max-h-48 sm:max-h-64 object-contain" />
                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <UploadCloud className="h-6 w-6 text-white mb-2" />
-                        <span className="text-white font-bold text-sm">Change Image (or Paste Ctrl+V)</span>
+                        <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-white mb-1.5 sm:mb-2" />
+                        <span className="text-white font-bold text-xs sm:text-sm px-2">Change Image (or Paste Ctrl+V)</span>
                      </div>
                    </div>
                 ) : (
-                <div className="flex flex-col items-center justify-center space-y-3 p-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-400/30 text-lime-300 border-2 border-lime-400/60 shadow-lg group-hover:scale-110 transition-transform">
-                    <UploadCloud className="h-7 w-7" />
+                <div className="flex flex-col items-center justify-center space-y-2.5 sm:space-y-3 px-3 sm:px-4">
+                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-lime-400/30 text-lime-300 border-2 border-lime-400/60 shadow-lg group-hover:scale-110 transition-transform shrink-0">
+                    <UploadCloud className="h-6 w-6 sm:h-7 sm:w-7" />
                   </div>
-                  <div>
-                    <p className="text-base font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] group-hover:text-lime-300 transition-colors">
+                  <div className="text-center">
+                    <p className="text-sm sm:text-base font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] group-hover:text-lime-300 transition-colors">
                       Click to upload, drag & drop, or paste image
                     </p>
-                    <p className="text-xs text-lime-300/90 mt-1 font-bold drop-shadow flex items-center justify-center gap-1">
-                      <Clipboard className="h-3.5 w-3.5 text-lime-300" />
-                      <span>Press <strong>Ctrl+V</strong> to paste copied browser images</span>
+                    <p className="text-xs text-lime-300/90 mt-1 font-bold drop-shadow leading-tight">
+                      <span className="hidden sm:block">Press <strong>Ctrl+V</strong> to paste copied browser images</span>
+                      <span className="sm:hidden">Or paste with Ctrl+V</span>
                     </p>
                   </div>
                 </div>
@@ -679,27 +679,27 @@ export function AgriGlassDashboard() {
             </div>
 
             {/* 3. PATHOGEN CAUSES & DISEASE REASONS BLOCK */}
-            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-5 space-y-3 shadow-lg backdrop-blur-3xl">
-              <div className="flex items-center justify-between border-b border-white/30 pb-2.5">
-                <span className="text-xs font-black uppercase tracking-wider text-lime-300 flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  <HelpCircle className="h-4 w-4 text-lime-300" />
-                  Pathogen Causes & Disease Reasons
+            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-4 sm:p-5 space-y-2.5 sm:space-y-3 shadow-lg backdrop-blur-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/30 pb-2.5">
+                <span className="text-xs font-black uppercase tracking-wider text-lime-300 flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
+                  <HelpCircle className="h-4 w-4 shrink-0 text-lime-300" />
+                  <span className="truncate">Pathogen Causes & Disease Reasons</span>
                 </span>
-                <span className="rounded-full bg-lime-400/30 text-lime-300 border border-lime-400/50 px-2.5 py-0.5 text-[10px] font-mono font-black">
+                <span className="rounded-full bg-lime-400/30 text-lime-300 border border-lime-400/50 px-2 sm:px-2.5 py-0.5 text-[10px] font-mono font-black whitespace-nowrap">
                   Key Etiology
                 </span>
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-white drop-shadow flex items-center gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 text-amber-300 shrink-0" />
-                  <span>{currentPathogenInfo.title}</span>
+                <h4 className="text-xs font-black text-white drop-shadow flex items-start gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-300 shrink-0 mt-0.5" />
+                  <span className="line-clamp-3">{currentPathogenInfo.title}</span>
                 </h4>
                 <ul className="space-y-1.5 text-xs font-bold text-white/95">
                   {currentPathogenInfo.points.map((point, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-black/20 rounded-lg p-2 border border-white/10">
+                    <li key={idx} className="flex items-start gap-2 bg-black/20 rounded-lg p-2 sm:p-2.5 border border-white/10">
                       <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shrink-0 mt-1.5 shadow-[0_0_6px_#a3e635]" />
-                      <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] leading-tight">{point}</span>
+                      <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] leading-snug text-xs">{point}</span>
                     </li>
                   ))}
                 </ul>
@@ -712,46 +712,46 @@ export function AgriGlassDashboard() {
           <div className="space-y-6">
             
             {/* 3. ANALYSIS & DETAILED AI OUTPUT AREA */}
-            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-6 space-y-4 shadow-lg backdrop-blur-3xl">
-              <div className="flex items-center justify-between border-b-2 border-white/30 pb-3">
-                <span className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  <ShieldCheck className="h-5 w-5 text-lime-300" />
-                  Detailed Results
+            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-4 sm:p-6 space-y-4 shadow-lg backdrop-blur-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b-2 border-white/30 pb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
+                  <ShieldCheck className="h-5 w-5 shrink-0 text-lime-300" />
+                  <span className="truncate">Detailed Results</span>
                 </span>
-                <span className="rounded-full bg-lime-400 text-stone-950 px-3.5 py-1 text-xs font-mono font-black shadow-md">
+                <span className="rounded-full bg-lime-400 text-stone-950 px-3 sm:px-3.5 py-1 text-xs font-mono font-black shadow-md whitespace-nowrap">
                   Confidence: {activeConfidence}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs font-sans">
+                <div className="min-w-0">
                   <span className="text-lime-300 font-extrabold text-[11px] uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Detected Pathogen</span>
-                  <span className="text-white font-extrabold text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] flex items-center gap-2 truncate">
+                  <span className="text-white font-extrabold text-sm sm:text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] flex items-center gap-2 truncate">
                     {isGenerating && <Loader2 className="h-4 w-4 animate-spin text-lime-300 shrink-0" />}
                     <span className="truncate">{formatLabel(activeDetectedPathogen)}</span>
                   </span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-lime-300 font-extrabold text-[11px] uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Target Crop</span>
-                  <span className="text-white font-extrabold text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                  <span className="text-white font-extrabold text-sm sm:text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] truncate">
                     {activeDetectedPathogen === "-" ? "-" : activeDetectedPathogen.includes("Tomato") ? "Tomato" : activeDetectedPathogen.includes("Potato") ? "Potato" : "General Plant"}
                   </span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-lime-300 font-extrabold text-[11px] uppercase block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">Active AI Model</span>
-                  <span className="text-white font-extrabold text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] truncate block">{activeModel.name.split(" ")[0]}</span>
+                  <span className="text-white font-extrabold text-sm sm:text-base drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] truncate block">{activeModel.name.split(" ")[0]}</span>
                 </div>
               </div>
 
               {/* TRI-MODEL SOFT-VOTING BREAKDOWN (YOLOv8 + SwinV2 + CropNet) */}
               {(activeModel.id === "ensemble" || !activeModel.id) && (
-                <div className="rounded-xl bg-black/35 border-2 border-lime-400/50 p-4 space-y-3 shadow-md">
-                  <div className="flex items-center justify-between border-b border-white/20 pb-2">
-                    <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-lime-300" />
-                      Soft Voting Ensemble Breakdown (3 Models)
+                <div className="rounded-xl bg-black/35 border-2 border-lime-400/50 p-3 sm:p-4 space-y-3 shadow-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/20 pb-2">
+                    <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5 truncate">
+                      <Sparkles className="h-4 w-4 shrink-0 text-lime-300" />
+                      <span className="truncate">Soft Voting Ensemble Breakdown</span>
                     </span>
-                    <span className="text-[10px] font-extrabold bg-lime-400 text-stone-950 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-extrabold bg-lime-400 text-stone-950 px-2 py-0.5 rounded-full whitespace-nowrap">
                       Top Winner Consensus
                     </span>
                   </div>
@@ -803,17 +803,17 @@ export function AgriGlassDashboard() {
                 </div>
               )}
 
-              <div className="rounded-xl bg-lime-400/25 border-2 border-lime-400/60 p-4 flex items-start gap-3 text-xs text-white shadow-md min-h-[120px] transition-all duration-500 ease-in-out">
+              <div className="rounded-xl bg-lime-400/25 border-2 border-lime-400/60 p-3 sm:p-4 flex items-start gap-2 sm:gap-3 text-xs text-white shadow-md min-h-[100px] sm:min-h-[120px] transition-all duration-500 ease-in-out">
                 {isGenerating ? (
                   <Sparkles className="h-5 w-5 text-lime-300 shrink-0 mt-0.5 animate-pulse" />
                 ) : (
                   <CheckCircle2 className="h-5 w-5 text-lime-300 shrink-0 mt-0.5" />
                 )}
-                <div className="space-y-1">
-                  <strong className="text-white block font-black text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                <div className="space-y-1 min-w-0">
+                  <strong className="text-white block font-black text-xs sm:text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                     Action Directive:
                   </strong>
-                  <p className="font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                  <p className="font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] text-xs break-words">
                     {displayedDirective}
                   </p>
                 </div>
@@ -821,27 +821,27 @@ export function AgriGlassDashboard() {
             </div>
 
             {/* 4. INSIGHTFUL PIE CHART: TOP 3 CLASSES SUGGESTED BY SELECTED MODEL */}
-            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-6 space-y-4 shadow-lg backdrop-blur-3xl">
-              <div className="flex items-center justify-between border-b-2 border-white/30 pb-3">
-                <div className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5 text-lime-300" />
-                  <span className="text-xs font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                    Top 3 Predicted Classes — {activeModel.name.split(" ")[0]}
+            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-4 sm:p-6 space-y-4 shadow-lg backdrop-blur-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b-2 border-white/30 pb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <PieChart className="h-5 w-5 shrink-0 text-lime-300" />
+                  <span className="text-xs font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
+                    Top 3 Classes — {activeModel.name.split(" ")[0]}
                   </span>
                 </div>
                 <Link
                   href="/arena"
-                  className="rounded-xl bg-lime-400 text-stone-950 px-3 py-1.5 text-xs font-black shadow-md hover:bg-lime-300 transition-all cursor-pointer flex items-center gap-1.5"
+                  className="rounded-xl bg-lime-400 text-stone-950 px-3 py-1.5 text-xs font-black shadow-md hover:bg-lime-300 transition-all cursor-pointer flex items-center gap-1.5 min-h-10 whitespace-nowrap"
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
                   <span>AI Arena →</span>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-6 items-center">
                 {/* SVG Donut Pie Chart Visual */}
                 <div className="sm:col-span-5 flex flex-col items-center justify-center relative py-1">
-                  <div className="relative w-36 h-36 flex items-center justify-center">
+                  <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center flex-shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                       <circle
                         cx="50"
@@ -896,10 +896,10 @@ export function AgriGlassDashboard() {
                       )}
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-xl font-black text-white font-mono drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                      <span className="text-lg sm:text-xl font-black text-white font-mono drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {topClasses[0].percent}%
                       </span>
-                      <span className="text-[9px] font-extrabold text-lime-300 uppercase tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                      <span className="text-[8px] sm:text-[9px] font-extrabold text-lime-300 uppercase tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                         Top Match
                       </span>
                     </div>
@@ -907,17 +907,17 @@ export function AgriGlassDashboard() {
                 </div>
 
                 {/* Legend & Breakdown List */}
-                <div className="sm:col-span-7 space-y-2.5">
+                <div className="sm:col-span-7 space-y-2">
                   {topClasses.map((item, idx) => (
                     <div key={idx} className="space-y-1 bg-white/10 rounded-xl p-2 border border-white/20">
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <div className="flex items-center gap-2 truncate">
+                      <div className="flex items-center justify-between text-xs font-bold gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                           <span className={`h-2.5 w-2.5 rounded-full ${item.bgColor} shrink-0 shadow-[0_0_6px_currentColor]`} />
-                          <span className="text-white truncate font-extrabold" title={formatLabel(item.name)}>
+                          <span className="text-white truncate font-extrabold text-xs" title={formatLabel(item.name)}>
                             {formatLabel(item.name)}
                           </span>
                         </div>
-                        <span className="font-mono text-lime-300 font-black ml-2">{item.percent}%</span>
+                        <span className="font-mono text-lime-300 font-black text-xs tabular-nums whitespace-nowrap">{item.percent}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-black/30 rounded-full overflow-hidden">
                         <div
@@ -935,12 +935,12 @@ export function AgriGlassDashboard() {
         </div>
 
         {/* 5. MODEL EXPLAINABILITY (GRAD-CAM LESION HEATMAPS) */}
-        <div className="border-t-2 border-white/40 pt-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="border-t-2 border-white/40 pt-5 sm:pt-6 space-y-5 sm:space-y-6">
+          <div className="flex flex-col gap-3">
             <div>
               <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <Sparkles className="h-4 w-4 text-lime-300" />
-                Model Explainability — Grad-CAM Feature Visualizations
+                <Sparkles className="h-4 w-4 shrink-0 text-lime-300" />
+                <span className="truncate">Model Explainability — Grad-CAM Feature Visualizations</span>
               </label>
               <p className="text-xs font-bold text-white/90 mt-1 drop-shadow">
                 Visualizing spatial neural feature attention maps over plant foliage lesions.
@@ -957,9 +957,9 @@ export function AgriGlassDashboard() {
                   key={m.id}
                   type="button"
                   onClick={() => setSelectedModel(m)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                  className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border min-h-9 ${
                     activeModel.id === m.id
-                      ? "bg-lime-400 text-stone-950 border-lime-300 shadow-lg scale-105"
+                      ? "bg-lime-400 text-stone-950 border-lime-300 shadow-lg sm:scale-105"
                       : "bg-white/15 text-white border-white/40 hover:bg-white/25 drop-shadow"
                   }`}
                 >
@@ -981,7 +981,7 @@ export function AgriGlassDashboard() {
                     setSelectedSampleImage(img.filename);
                     setUploadedFile(null); // Switch to sample view for instant 0ms static display
                   }}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer border ${
+                  className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer border min-h-8 ${
                     selectedSampleImage === img.filename && !uploadedFile
                       ? "bg-sky-400 text-stone-950 border-sky-300 shadow-md font-black"
                       : "bg-white/10 text-white/90 border-white/30 hover:bg-white/20"
@@ -994,40 +994,40 @@ export function AgriGlassDashboard() {
           </div>
 
           {/* Dual Display Grid: Real Image vs Model Grad-CAM */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+
             {/* Real Input Image */}
-            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-4 space-y-3 shadow-lg backdrop-blur-3xl">
-              <div className="flex items-center justify-between border-b border-white/30 pb-2">
-                <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5">
-                  <FileImage className="h-4 w-4" />
-                  Real Input Image
+            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-3 sm:p-4 space-y-3 shadow-lg backdrop-blur-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/30 pb-2">
+                <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5 truncate">
+                  <FileImage className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Real Input Image</span>
                 </span>
-                <span className="text-[11px] font-mono font-bold text-white/80">Original RGB</span>
+                <span className="text-[11px] font-mono font-bold text-white/80 whitespace-nowrap">Original RGB</span>
               </div>
-              <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/30 min-h-[240px] max-h-[300px] flex items-center justify-center">
+              <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/30 min-h-[160px] sm:min-h-[240px] max-h-[300px] flex items-center justify-center">
                 <img
                   src={
-                    uploadedFile 
+                    uploadedFile
                       ? (uploadedFile.startsWith('blob:') ? uploadedFile : `/${uploadedFile.replace('/', '')}`)
                       : `/Test_Images_For_gradcam/${selectedSampleImage}`
                   }
                   alt="Real plant foliage"
-                  className="w-full h-full object-contain max-h-[280px]"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
 
             {/* Grad-CAM Model Heatmap */}
-            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-4 space-y-3 shadow-lg backdrop-blur-3xl">
-              <div className="flex items-center justify-between border-b border-white/30 pb-2">
-                <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4" />
-                  Grad-CAM Lesion Heatmap ({activeModel.name.split(" ")[0]})
+            <div className="rounded-2xl bg-white/20 border-2 border-white/50 p-3 sm:p-4 space-y-3 shadow-lg backdrop-blur-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/30 pb-2">
+                <span className="text-xs font-black uppercase text-lime-300 flex items-center gap-1.5 truncate">
+                  <Sparkles className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Grad-CAM Heatmap ({activeModel.name.split(" ")[0]})</span>
                 </span>
-                <span className="text-[11px] font-mono font-bold text-lime-300">Feature Hotspot Map</span>
+                <span className="text-[11px] font-mono font-bold text-lime-300 whitespace-nowrap">Feature Map</span>
               </div>
-              <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/30 min-h-[240px] max-h-[300px] flex items-center justify-center">
+              <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/30 min-h-[160px] sm:min-h-[240px] max-h-[300px] flex items-center justify-center">
                 <img
                   src={
                     apiPredictions[activeModel.id]?.gradcam
@@ -1035,7 +1035,7 @@ export function AgriGlassDashboard() {
                       : `/GradCAM_Results/${MODEL_FOLDER_MAP[activeModel.id] || 'Yolo11n'}/${selectedSampleImage.replace(/\.JPG$/i, '.jpg')}`
                   }
                   alt={`Grad-CAM heatmap for ${activeModel.name}`}
-                  className="w-full h-full object-contain max-h-[280px]"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
